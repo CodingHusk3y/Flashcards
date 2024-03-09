@@ -68,11 +68,27 @@ const App = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const currentCard = cardPairs[currentCardIndex];
+  const [cardHistory, setCardHistory] = useState([0]); 
 
   const handleNextCard = () => {
-    const newIndex = (currentCardIndex + 1) % cardPairs.length; // Move to the next card, looping back to the first if at the end
+    let newIndex;
+    do {
+      newIndex = Math.floor(Math.random() * cardPairs.length); // Generate a random index
+    } while (newIndex === currentCardIndex); // Ensure the new index is not the same as the current one
+
     setCurrentCardIndex(newIndex);
+    setCardHistory([...cardHistory, newIndex]); // Add the new index to the history
     setIsFlipped(false); // Reset to front side for the new card
+  };
+
+  const handlePreviousCard = () => {
+    if (cardHistory.length > 1) {
+      const newHistory = [...cardHistory];
+      newHistory.pop(); // Remove the current card from the history
+      setCardHistory(newHistory);
+      setCurrentCardIndex(newHistory[newHistory.length - 1]); // Set the current card to the last one in the new history
+      setIsFlipped(false); // Reset to front side for the new card
+    }
   };
 
   const handleCardClick = () => {
@@ -98,6 +114,7 @@ const App = () => {
           </div>
         </div>
       </div>
+      <button onClick={handlePreviousCard}>Previous</button>
       <button onClick={handleNextCard}>Next</button>
     </div>
   )
