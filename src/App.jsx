@@ -67,33 +67,54 @@ const cardPairs = [
 const App = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const [correctAnswer, setCorrectAnswer] = useState(false);
+  const [streak, setStreak] = useState({ current: 0, longest: 0 });
+
   const currentCard = cardPairs[currentCardIndex];
-  const [cardHistory, setCardHistory] = useState([0]); 
 
   const handleNextCard = () => {
-    let newIndex;
-    do {
-      newIndex = Math.floor(Math.random() * cardPairs.length); // Generate a random index
-    } while (newIndex === currentCardIndex); // Ensure the new index is not the same as the current one
-
+    const newIndex = (currentCardIndex + 1) % cardPairs.length;
     setCurrentCardIndex(newIndex);
-    setCardHistory([...cardHistory, newIndex]); // Add the new index to the history
-    setIsFlipped(false); // Reset to front side for the new card
+    setIsFlipped(false);
+    setUserInput('');
+    setCorrectAnswer(false);
   };
 
   const handlePreviousCard = () => {
-    if (cardHistory.length > 1) {
-      const newHistory = [...cardHistory];
-      newHistory.pop(); // Remove the current card from the history
-      setCardHistory(newHistory);
-      setCurrentCardIndex(newHistory[newHistory.length - 1]); // Set the current card to the last one in the new history
-      setIsFlipped(false); // Reset to front side for the new card
-    }
+    const newIndex = (currentCardIndex - 1 + cardPairs.length) % cardPairs.length;
+    setCurrentCardIndex(newIndex);
+    setIsFlipped(false);
+    setUserInput('');
+    setCorrectAnswer(false);
   };
 
   const handleCardClick = () => {
-    console.log("Card clicked");
     setIsFlipped(!isFlipped);
+  };
+
+  const handleSubmit = () => {
+    const formattedUserInput = userInput.trim().toLowerCase();
+    const formattedAnswer = currentCard.answer.trim().toLowerCase();
+    if (formattedUserInput === formattedAnswer || formattedUserInput.includes(formattedAnswer)) {
+      setCorrectAnswer(true);
+      setStreak({ ...streak, current: streak.current + 1 });
+      if (streak.current >= streak.longest) {
+        setStreak({ ...streak, longest: streak.current + 1 });
+      }
+    } else {
+      setCorrectAnswer(false);
+      setStreak({ ...streak, current: 0 });
+    }
+  };
+
+  const handleShuffle = () => {
+    // Shuffle cardPairs array
+    const shuffledCards = [...cardPairs].sort(() => Math.random() - 0.5);
+    setCurrentCardIndex(0);
+    setUserInput('');
+    setCorrectAnswer(false);
+    setStreak({ current: 0, longest: streak.longest });
   };
 
   return (
@@ -101,23 +122,38 @@ const App = () => {
       <h1>Computer Science questions set</h1>
       <h2>Explore a comprehensive array of Computer Science questions tailored to challenge and enhance your understanding of fundamental concepts and advanced topics alike.</h2>
       <p>Number of questions: 10</p>
-      <div className={`card ${isFlipped ? 'is-flipped' : ''} ${currentCard.difficulty}`} onClick={handleCardClick}>
-        <div className="card-inner">
-          <div className="card-face card-front">
-            <p>Difficulty: {currentCard.difficulty}</p>
-            <p>{currentCard.question}</p>
-            <img src={currentCard.image} alt={currentCard.question} />
-          </div>
-          <div className="card-face card-back">
-            <h2>Answer:</h2>
-            <p>{currentCard.answer}</p>
+      <div className="card-container">
+        <div className={`card ${isFlipped ? 'is-flipped' : ''} ${currentCard.difficulty}`} onClick={handleCardClick}>
+          <div className="card-inner">
+            <div className="card-face card-front">
+              <p>Difficulty: {currentCard.difficulty}</p>
+              <p>{currentCard.question}</p>
+              <img src={currentCard.image} alt={currentCard.question} />
+            </div>
+            <div className="card-face card-back">
+              <h2>Answer:</h2>
+              <p>{currentCard.answer}</p>
+            </div>
           </div>
         </div>
+        <div className="input-container">
+          <input type="text" value={userInput} onChange={(e) => setUserInput(e.target.value)} placeholder="Enter your guess" />
+          <button onClick={handleSubmit}>Submit</button>
+          {correctAnswer && <p className="correct-answer">Correct!</p>}
+          {!correctAnswer && correctAnswer !== null && <p className="incorrect-answer">Incorrect. Try again!</p>}
+        </div>
+        <div className="navigation-buttons">
+          <button onClick={handlePreviousCard}>Previous</button>
+          <button onClick={handleNextCard}>Next</button>
+          <button onClick={handleShuffle}>Shuffle</button>
+        </div>
       </div>
-      <button onClick={handlePreviousCard}>Previous</button>
-      <button onClick={handleNextCard}>Next</button>
+      <div className="streak-count">
+        <p>Current Streak: {streak.current}</p>
+        <p>Longest Streak: {streak.longest}</p>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
